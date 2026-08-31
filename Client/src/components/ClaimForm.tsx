@@ -1,17 +1,21 @@
 import { useState } from "react";
 import type { CreateClaimRequest } from "../types/CreateClaimRequest";
 import { createClaim } from "../api/claims";
+import { useMsal } from '@azure/msal-react';
+import { getAccessToken } from '../auth/getToken';
 
 export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
     const [claimNo, setClaimNo] = useState('');
     const [description, setDescription] = useState('');
     const [claimantId, setClaimantId] = useState(0);
     const [amount, setAmount] = useState(0);
+    const { instance, accounts } = useMsal();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        await createClaim({ claimNo, description, claimantId, amount });
+        const token = await getAccessToken(instance, accounts[0]);
+        await createClaim(token, { claimNo, description, claimantId, amount });
 
         setClaimNo('');
         setDescription('');
