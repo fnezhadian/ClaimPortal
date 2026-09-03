@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ClaimPortal.Api.Services;
 using ClaimPortal.Api.Models;
 using ClaimPortal.Api.DTOs;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ClaimsController : ControllerBase
 {
     private readonly ClaimService _claimService;

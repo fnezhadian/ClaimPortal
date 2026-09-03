@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using Scalar.AspNetCore;
 using ClaimPortal.Api.Data;
 using ClaimPortal.Api.Services;
@@ -29,6 +30,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ClaimService>();
 
+builder.Services.AddAuthentication(Microsoft.Identity.Web.Constants.Bearer)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,9 +46,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowClient");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors("AllowClient");
 app.MapControllers();
 
 app.Run();
+
+

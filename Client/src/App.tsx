@@ -10,6 +10,7 @@ import { getAccessToken } from './auth/getToken';
 function App() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
+  const { instance, accounts } = useMsal();
 
 function loadClaims() {
   setLoading(true);
@@ -26,10 +27,10 @@ function loadClaims() {
 }
 
   useEffect(() => {
+    if(accounts.length > 0){
     loadClaims();
-  }, []);
-
-  const { instance, accounts } = useMsal();
+    }
+  }, [accounts]);
 
   function handleLogin() {
     instance.loginRedirect(apiRequest);
@@ -46,14 +47,13 @@ function loadClaims() {
       <AuthenticatedTemplate>
         <p>Signed in as {accounts[0]?.username}</p>
         <button onClick={handleLogout}>Logout</button>
+        <ClaimForm onClaimCreated={loadClaims} />
+        {loading ? <p>Loading claims...</p> : <ClaimsList claims={claims} />}
       </AuthenticatedTemplate>
 
       <UnauthenticatedTemplate>
         <button onClick={handleLogin}>Login</button>
       </UnauthenticatedTemplate>
-
-      <ClaimForm onClaimCreated={loadClaims} />
-      {loading ? <p>Loading claims...</p> : <ClaimsList claims={claims} />}
     </div>
   );
 }
