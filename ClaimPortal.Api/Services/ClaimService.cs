@@ -2,14 +2,30 @@ using Microsoft.EntityFrameworkCore;
 using ClaimPortal.Api.Models;
 using ClaimPortal.Api.Data;
 using ClaimPortal.Api.DTOs;
+using System.Net.Http.Json;
+
 namespace ClaimPortal.Api.Services;
 public class ClaimService
 {
     private readonly AppDbContext _context;
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
 
-    public ClaimService(AppDbContext context)
+    public ClaimService(AppDbContext context, HttpClient httpClient, IConfiguration configuration)
     {
         _context = context;
+        _httpClient = httpClient;
+        _configuration = configuration;
+    }
+
+    public async Task<bool> VerifyCaptchaAsync(string captchaToken)
+    {
+        var secretKey = _configuration["ReCAPTCHA:SecretKey"];
+        var response = await _httpClient.PostAsync($"https://www.google.com/recaptcha/api/siteverify?secret={secretKey}&response={captchaToken}", null);
+        
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        return doc.RootElement.GetProperty("success").GetBoolean();
     }
 
     public async Task<IEnumerable<Claim>> GetClaimsAsync()
@@ -24,6 +40,12 @@ public class ClaimService
 
     public async Task<Claim> CreateClaimAsync(CreateClaimRequest request)
     {
+        var isCaptchaValid = await VerifyCaptchaAsync(request.CaptchaToken);
+        if (!isCaptchaValid)
+        {
+            throw new InvalidOperationException("Captcha verification failed.");
+        }
+
         var claim = new Claim
         {
             ClaimNo = request.ClaimNo,

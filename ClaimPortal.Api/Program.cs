@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 using ClaimPortal.Api.Data;
 using ClaimPortal.Api.Services;
@@ -34,6 +35,18 @@ builder.Services.AddAuthentication(Microsoft.Identity.Web.Constants.Bearer)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("ClaimSubmission", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromSeconds(10);
+        opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 2;
+    });
+});
 
 var app = builder.Build();
 
@@ -43,13 +56,18 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+if(!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/error"); //OWASP - HSTS
+}
 
-app.UseHttpsRedirection();
+app.UseHttpsRedirection();     //OWASP - HTTPS enforcement
 
 app.UseCors("AllowClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

@@ -1,4 +1,5 @@
 import type { Claim } from '../types/Claim';
+import type { ClaimStatus } from '../types/ClaimStatus';
 import type { CreateClaimRequest } from '../types/CreateClaimRequest';
 
 export async function getClaims(token:string): Promise<Claim[]> {
@@ -29,4 +30,19 @@ export async function createClaim(token: string, request: CreateClaimRequest): P
 
   return response.json() as Promise<Claim>;
 
+}
+
+export async function updateClaimStatus(token: string, claimId: number, status: ClaimStatus): Promise<void> {
+  const response = await fetch(`/api/claims/${claimId}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update status: ${response.statusText}`);
+  }
 }

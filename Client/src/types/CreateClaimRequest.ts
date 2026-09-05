@@ -3,4 +3,5 @@ export interface CreateClaimRequest {
   description: string;
   claimantId: number;
   amount: number;
+  captchaToken: string;
 }

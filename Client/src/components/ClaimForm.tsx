@@ -3,6 +3,7 @@ import type { CreateClaimRequest } from "../types/CreateClaimRequest";
 import { createClaim } from "../api/claims";
 import { useMsal } from '@azure/msal-react';
 import { getAccessToken } from '../auth/getToken';
+import ReCAPTCHA from "react-google-recaptcha";
 
 export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
     const [claimNo, setClaimNo] = useState('');
@@ -10,12 +11,18 @@ export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
     const [claimantId, setClaimantId] = useState(0);
     const [amount, setAmount] = useState(0);
     const { instance, accounts } = useMsal();
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
+        if (!captchaToken) {
+            alert("Please complete the CAPTCHA");
+            return;
+        }
+
         const token = await getAccessToken(instance, accounts[0]);
-        await createClaim(token, { claimNo, description, claimantId, amount });
+        await createClaim(token, { claimNo, description, claimantId, amount, captchaToken });
 
         setClaimNo('');
         setDescription('');
@@ -63,6 +70,11 @@ export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
                 onChange={e => setAmount(Number(e.target.value))}
             />
         </div>
+
+        <ReCAPTCHA  
+            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+            onChange={(token) => setCaptchaToken(token)}
+        />
 
         <button type="submit">Submit Claim</button>
     </form>;
