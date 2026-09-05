@@ -24,6 +24,24 @@ client/
   vite.config.ts    # Dev server + API proxy config
 ```
 
+## npm packages
+
+Scaffolded with:
+```
+npm create vite@latest client -- --template react-ts
+```
+
+Additional packages installed on top of the Vite scaffold:
+```
+npm install @azure/msal-browser @azure/msal-react
+npm install react-google-recaptcha
+npm install -D @types/react-google-recaptcha
+```
+
+- **@azure/msal-browser + @azure/msal-react** — Entra ID login (redirect flow), token acquisition, and React hooks/context (`useMsal`, `AuthenticatedTemplate`)
+- **react-google-recaptcha** — reCAPTCHA v2 checkbox widget on the claim submission form
+- **@types/react-google-recaptcha** — TypeScript types for the above (dev dependency only)
+
 ## Authentication
 
 - Microsoft Entra ID via `@azure/msal-browser` / `@azure/msal-react`, using redirect flow (popup flow was unreliable locally)

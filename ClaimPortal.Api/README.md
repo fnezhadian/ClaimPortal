@@ -28,6 +28,25 @@ ClaimPortal.Api/
   Migrations/    # EF Core schema history
 ```
 
+## NuGet packages
+
+```
+dotnet add package Microsoft.EntityFrameworkCore --version 9.0.18
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 9.0.18
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 9.0.18
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 9.0.18
+dotnet add package Microsoft.AspNetCore.OpenApi
+dotnet add package Microsoft.Identity.Web
+dotnet add package Scalar.AspNetCore
+```
+
+- **EntityFrameworkCore + SqlServer + Design + Tools** — ORM, SQL Server provider, and migration tooling
+- **AspNetCore.OpenApi** — generates the OpenAPI spec (`/openapi/v1.json`)
+- **Microsoft.Identity.Web** — Entra ID token validation (`AddMicrosoftIdentityWebApi`)
+- **Scalar.AspNetCore** — interactive API docs UI at `/scalar/v1` (dev only)
+
+Rate limiting (`Microsoft.AspNetCore.RateLimiting`) is built into the ASP.NET Core shared framework — no separate package needed, just a `using` directive.
+
 ## Endpoints
 
 | Method | Route | Auth | Description |
