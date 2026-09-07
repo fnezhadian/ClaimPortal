@@ -1,17 +1,32 @@
 import { useState } from "react";
-import type { CreateClaimRequest } from "../types/CreateClaimRequest";
 import { createClaim } from "../api/claims";
 import { useMsal } from '@azure/msal-react';
 import { getAccessToken } from '../auth/getToken';
 import ReCAPTCHA from "react-google-recaptcha";
+import { FormField } from "./FormField";
+import type { FormFieldConfig } from "../types/FormFieldConfig";
 
-export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
-    const [claimNo, setClaimNo] = useState('');
-    const [description, setDescription] = useState('');
-    const [claimantId, setClaimantId] = useState(0);
-    const [amount, setAmount] = useState(0);
+const claimFormFields: FormFieldConfig[] = [
+    { id: 'claimNo', label: 'Claim Number', type: 'text' },
+    { id: 'description', label: 'Description', type: 'text' },
+    { id: 'claimantId', label: 'Claimant ID', type: 'number' },
+    { id: 'amount', label: 'Amount', type: 'number' }
+];
+
+export function ClaimForm({ onClaimCreated }: { onClaimCreated: () => void }) {
+    const [formValues, setFormValues] = useState<Record<string, string>>({            //Record<string, string>: this is a TypeScript utility type meaning "an object where every key is a string, and every value is a string
+        claimNo: '',
+        description: '',
+        claimantId: '',
+        amount: '',
+    });
+
     const { instance, accounts } = useMsal();
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+    async function handleFieldChange(id: string, value: string) {
+        setFormValues(prevValues => ({ ...prevValues, [id]: value }));
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -22,56 +37,31 @@ export function ClaimForm({onClaimCreated}: {onClaimCreated: () => void}) {
         }
 
         const token = await getAccessToken(instance, accounts[0]);
-        await createClaim(token, { claimNo, description, claimantId, amount, captchaToken });
+        await createClaim(token, {
+            claimNo: formValues.claimNo,
+            description: formValues.description,
+            claimantId: Number(formValues.claimantId),
+            amount: Number(formValues.amount),
+            captchaToken,
+        });
 
-        setClaimNo('');
-        setDescription('');
-        setClaimantId(0);
-        setAmount(0);
+        setFormValues({ claimNo: '', description: '', claimantId: '', amount: '' });
         onClaimCreated();
     }
 
     return <form onSubmit={handleSubmit}>
-        <div>
-            <label htmlFor="claimNo">Claim Number:</label>
-            <input
-                type="text"
-                id="claimNo"
-                value={claimNo}
-                onChange={(e) => setClaimNo(e.target.value)}
+        {claimFormFields.map(field => (
+            <FormField
+                key={field.id}
+                id={field.id}
+                label={field.label}
+                type={field.type}
+                value={formValues[field.id]}
+                onChange={value => handleFieldChange(field.id, value)}
             />
-        </div>
-        <div>
-            <label htmlFor="description">Description</label>
-            <input
-                id="description"
-                type="text"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-            />
-        </div>
+        ))}
 
-        <div>
-            <label htmlFor="claimantId">Claimant ID</label>
-            <input
-                id="claimantId"
-                type="number"
-                value={claimantId}
-                onChange={e => setClaimantId(Number(e.target.value))}
-            />
-        </div>
-
-        <div>
-            <label htmlFor="amount">Amount</label>
-            <input
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
-            />
-        </div>
-
-        <ReCAPTCHA  
+        <ReCAPTCHA
             sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
             onChange={(token) => setCaptchaToken(token)}
         />
