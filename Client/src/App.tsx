@@ -9,7 +9,7 @@ import { isAdmin } from './auth/roles';
 import { useApiResource } from './hooks/useApiResource';
 
 function App() {
-  const { data: claims, loading, reloadData: loadClaims } = useApiResource(getClaims);
+  const { data: claims, loading, error, reloadData: loadClaims } = useApiResource(getClaims);
   const { instance, accounts } = useMsal();
 
   async function handleStatusChange(claimId: number, status: ClaimStatus) {
@@ -34,14 +34,16 @@ function App() {
         <p>Signed in as {accounts[0]?.username}</p>
         <button onClick={handleLogout}>Logout</button>
         <ClaimForm onClaimCreated={loadClaims} />
-        {loading ? (
-          <p>Loading claims...</p>
-         ) : (<ClaimsList
-            claims={claims} 
+        {loading && (<p>Loading claims...</p>)}
+        {error && (<p role="alert">Something went wrong: {error}</p>)}
+        {!loading && !error && claims.length === 0 && (<p>No claims found.</p>)}
+        {!loading && !error && claims.length > 0 &&
+          <ClaimsList
+            claims={claims}
             isAdmin={isAdmin(accounts[0])}
             onStatusChange={handleStatusChange} 
           />
-        )}
+        }
       </AuthenticatedTemplate>
 
       <UnauthenticatedTemplate>

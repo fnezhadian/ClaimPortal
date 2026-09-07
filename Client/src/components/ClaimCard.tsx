@@ -16,8 +16,8 @@ export function ClaimCard({ claim, isAdmin, onStatusChange }: ClaimCardProps) {
       <p>{claim.status}</p>
       {isAdmin && onStatusChange && (
         <div>
-          <button onClick={() => onStatusChange(claim.id, 'Approved')}>Approve</button>
-          <button onClick={() => onStatusChange(claim.id, 'Rejected')}>Reject</button>
+          <button onClick={() => onStatusChange(claim.id, 'Approved')} aria-label={`Approve claim ${claim.claimNo}`}>Approve</button>
+          <button onClick={() => onStatusChange(claim.id, 'Rejected')} aria-label={`Reject claim ${claim.claimNo}`}>Reject</button>
         </div>
       )}
     </div>

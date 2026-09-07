@@ -20,7 +20,7 @@ export function ClaimForm({ onClaimCreated }: { onClaimCreated: () => void }) {
         claimantId: '',
         amount: '',
     });
-
+    const [submitStatus, setSubmitStatus] = useState<string | null>(null);
     const { instance, accounts } = useMsal();
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
@@ -46,6 +46,7 @@ export function ClaimForm({ onClaimCreated }: { onClaimCreated: () => void }) {
         });
 
         setFormValues({ claimNo: '', description: '', claimantId: '', amount: '' });
+        setSubmitStatus('Claim submitted successfully!');
         onClaimCreated();
     }
 
@@ -67,5 +68,6 @@ export function ClaimForm({ onClaimCreated }: { onClaimCreated: () => void }) {
         />
 
         <button type="submit">Submit Claim</button>
+        <p role="status">{submitStatus}</p>
     </form>;
 }
